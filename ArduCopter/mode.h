@@ -800,7 +800,10 @@ protected:
     float crosstrack_error() const override;
 
 private:
+    Vector3f path[10];
+    int path_num;
 
+    void generate_path();
     void pos_control_start();
     void vel_control_start();
     void posvel_control_start();
@@ -812,7 +815,7 @@ private:
     void set_yaw_state(bool use_yaw, float yaw_cd, bool use_yaw_rate, float yaw_rate_cds, bool relative_angle);
 
     // controls which controller is run (pos or vel):
-    GuidedMode guided_mode = Guided_TakeOff;
+    GuidedMode guided_mode = Guided_WP;
 
 };
 

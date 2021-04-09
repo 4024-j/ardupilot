@@ -40,11 +40,28 @@ struct Guided_Limit {
 // guided_init - initialise guided controller
 bool ModeGuided::init(bool ignore_checks)
 {
+    path_num = 0;
+    generate_path();
+
     // start in position control mode
     pos_control_start();
     return true;
 }
 
+
+void ModeGuided::generate_path()
+{
+    float radius_cm = 1000.0;
+
+    wp_nav->get_wp_stopping_point(path[0]);
+
+    path[1] = path[0] + Vector3f(1.0f, 0, 0) * radius_cm;
+    path[2] = path[0] + Vector3f(-cosf(radians(36.0f)), -sinf(radians(36.0f)), 0) * radius_cm;
+    path[3] = path[0] + Vector3f(sinf(radians(18.0f)), cosf(radians(18.0f)), 0) * radius_cm;
+    path[4] = path[0] + Vector3f(sinf(radians(18.0f)), -cosf(radians(18.0f)), 0) * radius_cm;
+    path[5] = path[0] + Vector3f(-cosf(radians(36.0f)), sinf(radians(36.0f)), 0) * radius_cm;
+    path[6] = path[1];
+}
 
 // do_user_takeoff_start - initialises waypoint controller to implement take-off
 bool ModeGuided::do_user_takeoff_start(float final_alt_above_home)
@@ -80,7 +97,7 @@ void ModeGuided::pos_control_start()
     // set to position control mode
     guided_mode = Guided_WP;
 
-    // initialise waypoint and spline controller
+    // Initialize waypoint and spline controller
     wp_nav->wp_and_spline_init();
 
     // initialise wpnav to stopping point
@@ -88,9 +105,7 @@ void ModeGuided::pos_control_start()
     //wp_nav->get_wp_stopping_point(stopping_point);
 
     // no need to check return status because terrain data is not used
-    wp_nav->set_wp_destination(copter.user_waypoint[copter.current_user_waypoint_num-1], false);
-
-    copter.current_user_waypoint_num --;
+    wp_nav->set_wp_destination(path[0], false);
 
     // initialise yaw
     auto_yaw.set_mode_to_default(false);
@@ -418,14 +433,12 @@ void Mode::auto_takeoff_run()
 void ModeGuided::pos_control_run()
 {
 
-        if(wp_nav->reached_wp_destination()){
-            if(copter.current_user_waypoint_num-1 >= 0){
-            wp_nav->set_wp_destination(copter.user_waypoint[copter.current_user_waypoint_num-1], false);
-            copter.current_user_waypoint_num --;
-
+    if(path_num < 6){
+            if(wp_nav->reached_wp_destination()){
+                path_num ++;
+                wp_nav->set_wp_destination(path[path_num], false);
             }
         }
-
     // process pilot's yaw input
     float target_yaw_rate = 0;
     if (!copter.failsafe.radio) {

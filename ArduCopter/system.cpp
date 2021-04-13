@@ -140,6 +140,8 @@ void Copter::init_ardupilot()
     AP::compass().set_log_bit(MASK_LOG_COMPASS);
     AP::compass().init();
 
+    rpi_usat.init(serial_manager);
+
 #if OPTFLOW == ENABLED
     // make optflow available to AHRS
     ahrs.set_optflow(&optflow);

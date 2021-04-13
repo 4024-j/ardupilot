@@ -141,6 +141,7 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
 #endif
     SCHED_TASK_CLASS(AP_Notify,            &copter.notify,              update,          50,  90),
     SCHED_TASK(one_hz_loop,            1,    100),
+    SCHED_TASK(update_Rpi_USAT,      400,    100),
     SCHED_TASK(ekf_check,             10,     75),
     SCHED_TASK(check_vibration,       10,     50),
     SCHED_TASK(gpsglitch_check,       10,     50),
@@ -331,6 +332,13 @@ void Copter::update_batt_compass(void)
     }
 }
 
+void Copter::update_Rpi_USAT(void)
+{
+    rpi_usat.update();
+}
+
+
+
 // Full rate logging of attitude, rate and pid loops
 // should be run at 400hz
 void Copter::fourhundred_hz_logging()
@@ -469,7 +477,10 @@ void Copter::one_hz_loop()
 #endif
 
     AP_Notify::flags.flying = !ap.land_complete;
+
 }
+
+
 
 // called at 50hz
 void Copter::update_GPS(void)

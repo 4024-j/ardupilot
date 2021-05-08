@@ -129,6 +129,7 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
 #endif
     SCHED_TASK_CLASS(AP_Notify,            &copter.notify,              update,          50,  90),
     SCHED_TASK(one_hz_loop,            1,    100),
+    SCHED_TASK(update_RPI,        400,    100),
     SCHED_TASK(ekf_check,             10,     75),
     SCHED_TASK(gpsglitch_check,       10,     50),
     SCHED_TASK(landinggear_update,    10,     75),
@@ -313,6 +314,11 @@ void Copter::update_batt_compass(void)
     }
 }
 
+void Copter::update_RPI(void)
+{
+    rpi.update();
+}
+
 // Full rate logging of attitude, rate and pid loops
 // should be run at 400hz
 void Copter::fourhundred_hz_logging()
@@ -451,7 +457,14 @@ void Copter::one_hz_loop()
     // indicates that the sensor or subsystem is present but not
     // functioning correctly
     update_sensor_status_flags();
+
+    gcs().send_text(MAV_SEVERITY_CRITICAL,
+                        "RPI X:%d Y:%d",
+                        rpi.cx,
+                        rpi.cy);
 }
+
+
 
 // called at 50hz
 void Copter::update_GPS(void)
